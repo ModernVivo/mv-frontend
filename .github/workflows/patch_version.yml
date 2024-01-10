@@ -1,0 +1,40 @@
+name: Patch Version Bump
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'Dockerfile'
+      - '.github/workflows/release.yml'
+    types: [closed]
+jobs:
+  patch-version-bump:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GH_ACTIONS_TOKEN }}
+      - name: Use Node.js 16
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+      - name: Setup Git
+        run: |
+          git config user.name mv-machine
+          git config user.email developer@modernvivo.com
+          git remote add gh-origin https://mv-machine:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+        env:
+          TOKEN: ${{ secrets.GH_ACTIONS_TOKEN }}
+      - name: Bump version patch
+        run: |
+          npm version patch --force
+        env:
+          CI: true
+      - name: Push commit and tag to GitHub
+        run: |
+          git push -f gh-origin HEAD:main --tags
+          git push -f gh-origin HEAD:develop --tags
