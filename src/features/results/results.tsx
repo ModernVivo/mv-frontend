@@ -1,6 +1,8 @@
+import { useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { get } from "lodash";
+import ReactPaginate from 'react-paginate';
 
 import NoResult from "~/features/results/components/no-results";
 import SearchResults from "~/features/results/components/search-results";
@@ -12,7 +14,9 @@ import { type FilterType, type UserInPaperType } from "~/types/types";
 import { type ConditionType } from "~/types";
 import { createCsv } from "~/utils/csv";
 import { boxCitation } from "~/utils/citationBox";
-import { useGetPapersQuery, useGetConditionsQuery } from '~/store/services/core';
+import { useGetPapersMutation, useGetConditionsMutation } from '~/store/services/core';
+
+const ITEMS_PER_PAGE = 10;
 
 export const Results = () => {
   const router = useRouter();
@@ -23,6 +27,28 @@ export const Results = () => {
   const [isAscending, setIsAscending] = useState(false);
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState('citations');
+  const [itemOffset, setItemOffset] = useState(0);
+  
+  const [getPapers, { data: papersData, isSuccess, isLoading, isError }] = useGetPapersMutation();
+  const [getConditions, { data: conditions, isSuccess: conditionSuccess }] = useGetConditionsMutation();
+
+  useEffect(() => {
+    if(!!id) {
+      getPapers({
+        model: id,
+        limit: ITEMS_PER_PAGE,
+        offset: itemOffset,
+      });
+    }
+  }, [itemOffset, id])
+
+  useEffect(() => {
+    if(!!id) {
+      getConditions({
+        model: id
+      });
+    }
+  }, [id])
 
   const toggleShowAllFilters = (conditionId: number) => {
     setShowAllFiltersState((prevState) => ({
@@ -31,17 +57,9 @@ export const Results = () => {
     }));
   };
 
-  const { data: papersData, isSuccess, isLoading, isError } = useGetPapersQuery({
-    model: id,
-    limit: 10,
-    offset: 0,
-  }) as { data: { results: UserInPaperType[] | undefined, count: number }, isSuccess: boolean, isLoading: boolean, isError: boolean };
   const data = get(papersData, 'results', []);
   const totalPaper = get(papersData, 'count', 0);
 
-  const { data: conditions, isSuccess: conditionSuccess } = useGetConditionsQuery({
-    model: id
-  }) as { data: ConditionType[] | undefined, isSuccess: boolean };
 
   console.log('useGetPapersQuery', data, isSuccess, isLoading, isError)
   console.log('useGetConditionsQuery', conditions, conditionSuccess)
@@ -61,6 +79,13 @@ export const Results = () => {
     setIsAscending(!isAscending);
   };
 
+  const handlePageClick = (event: any) => {
+    const newOffset = (event.selected * ITEMS_PER_PAGE) % totalPaper;
+    console.log(
+      `User requested page number ${event.selected}, which is offset ${newOffset}`
+    );
+    setItemOffset(newOffset);
+  };
 
 
   if (data) {
@@ -96,6 +121,7 @@ export const Results = () => {
     setMenuOpen(false);
   };
 
+  const pageCount = Math.ceil(totalPaper / ITEMS_PER_PAGE);
 
   return (
     <>
@@ -241,11 +267,44 @@ export const Results = () => {
               </div>
               <div className="flex flex-col gap-4">
                 {data?.map((paper: UserInPaperType): JSX.Element => (
-                  <ResultItem key={paper.paper_id} paper={paper} />
+                  <ResultItem key={paper.paper_id} paper={paper} paper_id={paper.paper_id} />
                 ))}
               </div>
             </>
           )}
+
+          <div className="my-10 flex justify-center">
+            <ReactPaginate
+              breakLabel="..."
+              previousLabel={
+                <svg className="w-2.5 h-2.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1 1 5l4 4"/>
+                </svg>
+              }
+              nextLabel={
+                <svg className="w-2.5 h-2.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+                </svg>
+              }
+              onPageChange={handlePageClick}
+              pageRangeDisplayed={5}
+              pageCount={pageCount}
+              renderOnZeroPageCount={null}
+              containerClassName="inline-flex -space-x-px text-base h-10"
+              className=""
+              pageClassName=""
+              pageLinkClassName="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+              activeClassName=""
+              activeLinkClassName="cursor-not-allowed flex items-center justify-center px-3 h-8 text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white"
+              previousClassName=""
+              nextClassName=""
+              previousLinkClassName="flex items-center justify-center px-4 h-10 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+              nextLinkClassName="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+              disabledClassName=""
+              disabledLinkClassName=""
+              breakLinkClassName="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+            />
+          </div>
         </main>
       </section>
     </>

@@ -18,7 +18,7 @@ export const coreApi = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getConditions: builder.query<any, any>({
+    getConditions: builder.mutation<any, any>({
       query: (params: string | string[][] | null) => `conditions/${objectToQueryParams(params)}`,
     }),
     getModel: builder.query<any, any>({
@@ -27,7 +27,7 @@ export const coreApi = createApi({
     getModelById: builder.query<any, any>({
       query: (query: ModelByIdQuery) => `model/${query.model_id}/${objectToQueryParams(query.params)}`,
     }),
-    getPapers: builder.query<any, any>({
+    getPapers: builder.mutation<any, any>({
       query: (params: string | string[][] | null) => `papers/${objectToQueryParams(params)}`,
     }),
   }),
@@ -36,8 +36,8 @@ export const coreApi = createApi({
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
 export const { 
-  useGetConditionsQuery,
+  useGetConditionsMutation,
   useGetModelQuery,
   useGetModelByIdQuery,
-  useGetPapersQuery,
+  useGetPapersMutation,
 } = coreApi;

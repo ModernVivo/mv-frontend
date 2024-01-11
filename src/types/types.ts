@@ -94,13 +94,12 @@ export interface UserInPaperType {
         condition_id: number;
         paper_id: number;  
         value: string;
-        condition: number;
-        // condition: {
-        //   condition_id: number;
-        //   condition_name: string;
-        //   condition_display_name: string;
-        //   filterable: boolean;
-        // };
+        condition: {
+          condition_id: number;
+          condition_name: string;
+          condition_display_name: string;
+          filterable: boolean;
+        };
       }
     ];
     colorBox?: string;

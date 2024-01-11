@@ -17,36 +17,34 @@ export interface Author {
 
 export default function ResultItem({
   paper,
+  paper_id
 }: {
   paper: UserInPaperType["paper"];
+  paper_id: number;
 }) {
 
-  console.log('==paper.pub_date', paper)
   const [showAllConditions, setShowAllConditions] = useState(false);
   const [showAllInformation, setShowAllInformation] = useState(false);
-  const year = moment(paper.pub_date).get('year');
-  const month = moment(paper.pub_date).get('month');
-  const day = moment(paper.pub_date).get('date');
-  // const year = paper.pub_date.toLocaleDateString("en-US", { year: "numeric" });
-  // const month = paper.pub_date.toLocaleDateString("en-US", { month: "2-digit" });
-  // const day = paper.pub_date.toLocaleDateString("en-US", { day: "2-digit" });
-  
+  // const year = moment(paper.pub_date).get('year');
+  // const month = moment(paper.pub_date).get('month');
+  // const day = moment(paper.pub_date).get('date');
+
   return (
     <div className="border-[#E0E2E4] text-[#475569]">
       <div className="my-6 rounded border bg-white">
       </div>
       <div className="flex flex-row">
         <div className="basis-1/6">
-          <div className={`box-border h-176 w-44 p-4 rounded-lg`} style={{backgroundColor: paper.colorBox}}>
+          <div className={`box-border h-176 w-44 p-4 rounded-lg`} style={{ backgroundColor: paper.colorBox }}>
             <div className="flow-root ... text-center">
-              <div className={`text-[80px] font-bold`}  style={{color: paper.colorText}}>{paper.citation_count}</div>
+              <div className={`text-[80px] font-bold`} style={{ color: paper.colorText }}>{paper.citation_count}</div>
             </div>
             <div className="flow-root ... text-center">
-              <div className={`text-[16px] font-bold`} style={{color: paper.colorText}}>Citations</div>
+              <div className={`text-[16px] font-bold`} style={{ color: paper.colorText }}>Citations</div>
             </div>
           </div>
         </div>
-        <div className="basis-1/1" style={{marginLeft: "20px"}}>
+        <div className="basis-1/1" style={{ marginLeft: "20px" }}>
           <div className="flex items-center justify-between">
             <h2 className="text-[22px] font-bold">Conditions</h2>
             {/* <div className="flex items-center gap-2 rounded border border-[#E0E2E4] px-3 py-2">
@@ -60,12 +58,12 @@ export default function ResultItem({
                 if (index > 5 && !showAllConditions) return;
                 return (
                   <span
-                    key={condition.paper_id + condition.condition}
+                    key={paper_id + condition.condition.condition_id}
                     className="font-normal w-[25rem]"
                   >
-                    {/* <strong className="font-bold w-[25rem]">
+                    <strong className="font-bold w-[25rem]">
                       {condition.condition.condition_display_name}
-                    </strong>{" "} */}
+                    </strong>{" "}
                     {condition.value}
                   </span>
                 );
@@ -74,7 +72,7 @@ export default function ResultItem({
               <span className="mb-10 font-normal">No conditions found</span>
             )}
           </div>
-        
+
           {paper.paper_condition_value.length > 0 && (
             <div
               className="mb-9 flex w-4/5 cursor-pointer gap-2"
@@ -122,7 +120,7 @@ export default function ResultItem({
       </div>
       <div className={`${showAllInformation ? "" : "hidden"} `}>
         <div className="text-[14px] font-normal text-[#475569]">
-          {paper.journal.short_name}, {year}-{month}-{day}
+          {paper.journal.short_name}, {paper.pub_date}
         </div>
         <div className="flex flex-row ml-2 mb-2 rounded-lg text-[14px] font-bold mt-4">
           <div className="basis-[30%] flex-grow overflow-y-auto">
@@ -132,13 +130,16 @@ export default function ResultItem({
             Affiliation
           </div>
         </div>
-        <div className="h-full grid grid-cols-4 rounded-lg text-[14px] border font-normal px-3 py-3 leading-7">
-          {paper.authors.map((author) => (
-            <><div key={author.author.author_id} className="overflow-y-auto">
-              {author.author.firstname} {author.author.lastname}
-            </div><div className="overflow-y-auto col-span-3 ml-12">
+        <div className="h-full rounded-lg text-[14px] border font-normal px-3 py-3 leading-7">
+          {paper.authors.map((author, k) => (
+            <div className="grid grid-cols-4" key={k}>
+              <div key={author.author.author_id} className="overflow-y-auto">
+                {author.author.firstname} {author.author.lastname}
+              </div>
+              <div className="overflow-y-auto col-span-3 ml-12">
                 {author.author.affiliation.affiliation_name}
-              </div></>
+              </div>
+            </div>
           ))}
         </div>
         <div className="flex ml-2 mb-2 rounded-lg text-[14px] font-bold mt-4">
