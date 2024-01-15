@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { get } from "lodash";
+import { get, isEmpty, forEach } from "lodash";
 import ReactPaginate from 'react-paginate';
 
 import NoResult from "~/features/results/components/no-results";
@@ -14,41 +14,56 @@ import { type FilterType, type UserInPaperType } from "~/types/types";
 import { type ConditionType } from "~/types";
 import { createCsv } from "~/utils/csv";
 import { boxCitation } from "~/utils/citationBox";
-import { useGetPapersMutation, useGetConditionsMutation } from '~/store/services/core';
+import { useGetPapersMutation, useGetConditionsValuesMutation } from '~/store/services/core';
 
 const ITEMS_PER_PAGE = 10;
+const DEFAULT_SHOW_ITEM = 5;
 
 export const Results = () => {
   const router = useRouter();
   const { id } = router.query;
-  const [selectedFilters, setSelectedFilters] = useState([]);
+  const [selectedFilters, setSelectedFilters] = useState({});
   const [filters, setFilters] = useState([]);
   const [showAllFiltersState, setShowAllFiltersState] = useState<Record<number, boolean>>({});
   const [isAscending, setIsAscending] = useState(false);
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState('citations');
   const [itemOffset, setItemOffset] = useState(0);
-  
+
   const [getPapers, { data: papersData, isSuccess, isLoading, isError }] = useGetPapersMutation();
-  const [getConditions, { data: conditions, isSuccess: conditionSuccess }] = useGetConditionsMutation();
+  const [getConditions, { data: conditions, isSuccess: conditionSuccess }] = useGetConditionsValuesMutation();
 
   useEffect(() => {
-    if(!!id) {
+    if (!!id) {
       getPapers({
         model: id,
         limit: ITEMS_PER_PAGE,
         offset: itemOffset,
+        ...getConditionParams(selectedFilters)
       });
     }
-  }, [itemOffset, id])
+  }, [selectedFilters, itemOffset, id])
 
   useEffect(() => {
-    if(!!id) {
+    if (!!id) {
       getConditions({
         model: id
       });
     }
   }, [id])
+
+  const getConditionParams = (conditions: any) => {
+    if (isEmpty(selectedFilters)) return {};
+    
+    const _conditions = {};
+    forEach(conditions, (value, key) => {
+      if(!isEmpty(value)) {
+        _conditions[key] = value;
+      }
+    });
+
+    return {conditions: JSON.stringify(_conditions)};
+  }
 
   const toggleShowAllFilters = (conditionId: number) => {
     setShowAllFiltersState((prevState) => ({
@@ -60,20 +75,6 @@ export const Results = () => {
   const data = get(papersData, 'results', []);
   const totalPaper = get(papersData, 'count', 0);
 
-
-  console.log('useGetPapersQuery', data, isSuccess, isLoading, isError)
-  console.log('useGetConditionsQuery', conditions, conditionSuccess)
-
-  // const { data, isSuccess, isLoading, isError } = api.paper.getPaper.useQuery(
-  //   [id ? (id as string) : "", filters, isAscending, selectedOption],
-  //   {
-  //     enabled: !!id,
-  //   },
-  // ) as { data: UserInPaperType[] | undefined, isSuccess: boolean, isLoading: boolean, isError: boolean };
-
-  // const { data: conditions, isSuccess: conditionSuccess } = api.condition.getConditions.useQuery(
-  //   [id ? (id as string) : ""],
-  // );
 
   const handleSortClick = () => {
     setIsAscending(!isAscending);
@@ -92,18 +93,35 @@ export const Results = () => {
     boxCitation(data, selectedOption);
   }
 
-  const handleCheckboxChange = (filter: FilterType, isChecked: boolean) => {
-    if (isChecked) {
-      setSelectedFilters((prevSelectedFilters) =>
-        prevSelectedFilters.filter((value) => value !== `${filter.value}_${filter.paper_id}_${filter.condition_id}`)
-      );
-      setFilters((prevSelectedFilters) =>
-        prevSelectedFilters.filter((value) => value !== `${filter.value}`)
-      );
+  const handleCheckboxChange = (condition_id: number, value: string, event: any) => {
+    const isChecked = get(event, 'target.checked', false)
+    const conditionId = String(condition_id);
+    if(isChecked) {
+      setSelectedFilters((preValue) => ({
+        ...preValue,
+        [conditionId]: [
+          ...get(preValue, conditionId, []),
+          value
+        ]
+      }))
     } else {
-      setSelectedFilters((prevSelectedFilters) => [...prevSelectedFilters, `${filter.value}_${filter.paper_id}_${filter.condition_id}`] as never);
-      setFilters((prevSelectedFilters) => [...prevSelectedFilters, `${filter.value}`] as never);
+      setSelectedFilters((preValue) => ({
+        ...preValue,
+        [conditionId]: get(preValue, conditionId, []).filter(v => v !== value)
+      }))
     }
+
+    // if (isChecked) {
+    //   setSelectedFilters((prevSelectedFilters) =>
+    //     prevSelectedFilters.filter((value) => value !== `${filter.value}_${filter.condition_id}`)
+    //   );
+    //   setFilters((prevSelectedFilters) =>
+    //     prevSelectedFilters.filter((value) => value !== `${filter.value}`)
+    //   );
+    // } else {
+    //   setSelectedFilters((prevSelectedFilters) => [...prevSelectedFilters, `${filter.value}_${filter.condition_id}`] as never);
+    //   setFilters((prevSelectedFilters) => [...prevSelectedFilters, `${filter.value}`] as never);
+    // }
   };
 
   const handleDownloadCSV = () => {
@@ -149,38 +167,38 @@ export const Results = () => {
               <h2 className="border-b border-[#E0E2E4] px-6 py-3 text-base font-bold leading-[250%] text-[#FFFFFF] bg-[#051731]">
                 Filter by:
               </h2>
-              {conditions?.map((key, i) => {
-                const conditionId = key.condition_id;
+              {conditions?.map((condition: ConditionType) => {
+                const conditionId = condition.condition_id;
                 const showAllFilters = showAllFiltersState[conditionId];
+                const condition_values = get(condition, 'values', []);
                 return (
                   <div key={`condition-${conditionId}`} className="flex flex-col gap-2 border-b border-[#E0E2E4] px-6 py-3">
                     <h3 className="text-base font-bold text-text-primary">
-                      {key.condition_display_name}
+                      {condition.condition_display_name}
                     </h3>
-                    {/* {key.paper_condition_value.map((filter: FilterType, index: number) => {
-                      const isChecked = selectedFilters.includes(`${filter.value}_${filter.paper_id}_${filter.condition_id}` as never);
+                    {condition_values.map((filter: FilterType, index: number) => {
+                      const isChecked = get(selectedFilters, ``, false);
                       if (index > 5 && !showAllFilters) return;
+                      const check_id = `value-condition_${conditionId}_${index}`;
                       return (
-                        <div key={`value-condition-${filter.paper_id}_${filter.condition_id}_${index}`} className="flex items-center gap-3">
+                        <div key={check_id} className="flex items-center gap-3 cursor-pointer">
                           <input
                             type="checkbox"
-                            id={`${filter.condition_id + filter.paper_id}`}
+                            id={check_id}
                             name={`${filter.value}`}
-                            value={`${filter.value}`}
-                            className="h-4 w-4 rounded-sm border border-black accent-[#475569]"
-                            onChange={() => handleCheckboxChange(filter, isChecked)}
-                            checked={isChecked}
+                            className="h-4 w-4 rounded-sm border border-black accent-[#475569] cursor-pointer"
+                            onChange={(event: any) => handleCheckboxChange(conditionId, filter.value, event)}
                           />
                           <label
-                            htmlFor={filter.value}
-                            className="text-base text-text-primary "
+                            htmlFor={check_id}
+                            className="text-base text-text-primary cursor-pointer"
                           >
                             {`${filter.value}`}
                           </label>
                         </div>
                       );
-                    })} */}
-                    {/* {key.paper_condition_value.length > 0 && (
+                    })}
+                    {condition_values.length > DEFAULT_SHOW_ITEM && (
                       <div
                         className="mb-9 flex w-4/5 cursor-pointer gap-2"
                         onClick={() => toggleShowAllFilters(conditionId)}
@@ -188,7 +206,7 @@ export const Results = () => {
                         <span className="text-base text-accent">
                           {showAllFilters
                             ? "Hide"
-                            : `Show all ${key.paper_condition_value.length}`}
+                            : `Show all ${condition_values.length - DEFAULT_SHOW_ITEM}`}
                         </span>
                         <Image
                           src="/chevron-accent.svg"
@@ -198,7 +216,7 @@ export const Results = () => {
                           className={`${showAllFilters ? "rotate-180" : ""} `}
                         />
                       </div>
-                    )} */}
+                    )}
                   </div>
                 );
               })}
@@ -278,12 +296,12 @@ export const Results = () => {
               breakLabel="..."
               previousLabel={
                 <svg className="w-2.5 h-2.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1 1 5l4 4"/>
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1 1 5l4 4" />
                 </svg>
               }
               nextLabel={
                 <svg className="w-2.5 h-2.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4" />
                 </svg>
               }
               onPageChange={handlePageClick}
@@ -295,7 +313,7 @@ export const Results = () => {
               pageClassName=""
               pageLinkClassName="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
               activeClassName=""
-              activeLinkClassName="cursor-not-allowed flex items-center justify-center px-3 h-8 text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white"
+              activeLinkClassName="cursor-not-allowed flex items-center justify-center px-3 h-10 text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white bg-gray-700"
               previousClassName=""
               nextClassName=""
               previousLinkClassName="flex items-center justify-center px-4 h-10 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"

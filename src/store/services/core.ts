@@ -21,6 +21,9 @@ export const coreApi = createApi({
     getConditions: builder.mutation<any, any>({
       query: (params: string | string[][] | null) => `conditions/${objectToQueryParams(params)}`,
     }),
+    getConditionsValues: builder.mutation<any, any>({
+      query: (params: string | string[][] | null) => `conditions/values/${objectToQueryParams(params)}`,
+    }),
     getModel: builder.query<any, any>({
       query: (params: string | string[][] | null) => `model/${objectToQueryParams(params)}`,
     }),
@@ -37,6 +40,7 @@ export const coreApi = createApi({
 // auto-generated based on the defined endpoints
 export const { 
   useGetConditionsMutation,
+  useGetConditionsValuesMutation,
   useGetModelQuery,
   useGetModelByIdQuery,
   useGetPapersMutation,

@@ -29,7 +29,7 @@ export type paperWithRelations = Prisma.model_used_in_paperGetPayload<{
 
 export interface FilterType {
   value: string,
-  paper_id: number,
+  // paper_id: number,
   condition_id: number,
 }
 
