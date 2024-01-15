@@ -13,11 +13,12 @@ import { useState } from "react";
 import { type FilterType, type UserInPaperType } from "~/types/types";
 import { type ConditionType } from "~/types";
 import { createCsv } from "~/utils/csv";
-import { boxCitation } from "~/utils/citationBox";
+import { boxCitation, SORT_BY } from "~/utils/citationBox";
 import { useGetPapersMutation, useGetConditionsValuesMutation } from '~/store/services/core';
 
 const ITEMS_PER_PAGE = 10;
 const DEFAULT_SHOW_ITEM = 5;
+
 
 export const Results = () => {
   const router = useRouter();
@@ -27,7 +28,7 @@ export const Results = () => {
   const [showAllFiltersState, setShowAllFiltersState] = useState<Record<number, boolean>>({});
   const [isAscending, setIsAscending] = useState(false);
   const [isMenuOpen, setMenuOpen] = useState(false);
-  const [selectedOption, setSelectedOption] = useState('citations');
+  const [selectedOption, setSelectedOption] = useState(SORT_BY.CITATION_COUNT);
   const [itemOffset, setItemOffset] = useState(0);
 
   const [getPapers, { data: papersData, isSuccess, isLoading, isError }] = useGetPapersMutation();
@@ -39,10 +40,11 @@ export const Results = () => {
         model: id,
         limit: ITEMS_PER_PAGE,
         offset: itemOffset,
+        ordering: `${isAscending ? '' : '-'}${selectedOption}`,
         ...getConditionParams(selectedFilters)
       });
     }
-  }, [selectedFilters, itemOffset, id])
+  }, [selectedFilters, itemOffset, id, isAscending, selectedOption])
 
   useEffect(() => {
     if (!!id) {
@@ -72,9 +74,9 @@ export const Results = () => {
     }));
   };
 
-  const data = get(papersData, 'results', []);
+  const _data = get(papersData, 'results', []);
   const totalPaper = get(papersData, 'count', 0);
-
+  const data = boxCitation(_data, selectedOption);
 
   const handleSortClick = () => {
     setIsAscending(!isAscending);
@@ -89,9 +91,9 @@ export const Results = () => {
   };
 
 
-  if (data) {
-    boxCitation(data, selectedOption);
-  }
+  // if (data) {
+  //   boxCitation(data, selectedOption);
+  // }
 
   const handleCheckboxChange = (condition_id: number, value: string, event: any) => {
     const isChecked = get(event, 'target.checked', false)
@@ -110,18 +112,6 @@ export const Results = () => {
         [conditionId]: get(preValue, conditionId, []).filter(v => v !== value)
       }))
     }
-
-    // if (isChecked) {
-    //   setSelectedFilters((prevSelectedFilters) =>
-    //     prevSelectedFilters.filter((value) => value !== `${filter.value}_${filter.condition_id}`)
-    //   );
-    //   setFilters((prevSelectedFilters) =>
-    //     prevSelectedFilters.filter((value) => value !== `${filter.value}`)
-    //   );
-    // } else {
-    //   setSelectedFilters((prevSelectedFilters) => [...prevSelectedFilters, `${filter.value}_${filter.condition_id}`] as never);
-    //   setFilters((prevSelectedFilters) => [...prevSelectedFilters, `${filter.value}`] as never);
-    // }
   };
 
   const handleDownloadCSV = () => {
@@ -256,23 +246,25 @@ export const Results = () => {
                     <div className="absolute top-10 right-0 bg-white border border-[#E3E7F0] rounded-lg p-2">
 
                       <div className="flex items-center mb-4">
-                        <label>
+                        <label className="cursor-pointer">
                           <input
                             type="radio"
                             value="citations"
-                            checked={selectedOption === 'citations'}
-                            onChange={() => handleOptionChange('citations')}
+                            checked={selectedOption === SORT_BY.CITATION_COUNT}
+                            onChange={() => handleOptionChange(SORT_BY.CITATION_COUNT)}
+                            className="me-2"
                           />
                           Citations
                         </label>
                       </div>
                       <div className="flex items-center">
-                        <label>
+                        <label className="cursor-pointer">
                           <input
                             type="radio"
                             value="date"
-                            checked={selectedOption === 'date'}
-                            onChange={() => handleOptionChange('date')}
+                            checked={selectedOption === SORT_BY.PUB_DATE}
+                            onChange={() => handleOptionChange(SORT_BY.PUB_DATE)}
+                            className="me-2"
                           />
                           Date
                         </label>
@@ -311,16 +303,16 @@ export const Results = () => {
               containerClassName="inline-flex -space-x-px text-base h-10"
               className=""
               pageClassName=""
-              pageLinkClassName="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+              pageLinkClassName="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white"
               activeClassName=""
-              activeLinkClassName="cursor-not-allowed flex items-center justify-center px-3 h-10 text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white bg-gray-700"
+              activeLinkClassName="cursor-not-allowed flex items-center justify-center px-3 h-10 text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 border-gray-700 bg-gray-700 text-white"
               previousClassName=""
               nextClassName=""
-              previousLinkClassName="flex items-center justify-center px-4 h-10 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-              nextLinkClassName="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+              previousLinkClassName="flex items-center justify-center px-4 h-10 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white"
+              nextLinkClassName="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white"
               disabledClassName=""
               disabledLinkClassName=""
-              breakLinkClassName="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+              breakLinkClassName="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white"
             />
           </div>
         </main>
