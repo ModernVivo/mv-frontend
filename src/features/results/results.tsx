@@ -167,7 +167,6 @@ export const Results = () => {
                       {condition.condition_display_name}
                     </h3>
                     {condition_values.map((filter: FilterType, index: number) => {
-                      const isChecked = get(selectedFilters, ``, false);
                       if (index > 5 && !showAllFilters) return;
                       const check_id = `value-condition_${conditionId}_${index}`;
                       return (
@@ -232,7 +231,7 @@ export const Results = () => {
                       onClick={(e) => e.stopPropagation()}
                       className="w-10 h-8 text-center flex items-center justify-center"
                     >
-                      <img
+                      <Image
                         src="/sort.svg"
                         alt="sort-by"
                         width={16}
@@ -305,7 +304,7 @@ export const Results = () => {
               pageClassName=""
               pageLinkClassName="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white"
               activeClassName=""
-              activeLinkClassName="cursor-not-allowed flex items-center justify-center px-3 h-10 text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 border-gray-700 bg-gray-700 text-white"
+              activeLinkClassName="cursor-not-allowed flex items-center justify-center px-3 h-10 text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 border-gray-700 !bg-gray-700 text-white"
               previousClassName=""
               nextClassName=""
               previousLinkClassName="flex items-center justify-center px-4 h-10 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white"

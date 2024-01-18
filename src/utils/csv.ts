@@ -1,15 +1,15 @@
 import { type UserInPaperType } from "~/types/types";
 
-export const createCsv = (data: UserInPaperType[]) => {
+export const createCsv = (data: UserInPaperType["paper"][]) => {
   let count = 0;
   let csvData = 'Paper title, Paper Journal, Publication Date, Citation Count,';
   let hasConditions = false;
 
   for (const d of data) {
-    if(d.paper){
-      if(Object.keys(d.paper.paper_condition_value).length > 0){
+    if(d){
+      if(Object.keys(d.paper_condition_value).length > 0){
         hasConditions = true;
-        d.paper?.paper_condition_value.forEach((condition) => {
+        d.paper_condition_value.forEach((condition) => {
           csvData += condition.condition.condition_display_name + ',';
         });
         csvData += '\n';
@@ -17,12 +17,12 @@ export const createCsv = (data: UserInPaperType[]) => {
       }
     }
   };
-  data.map((d: UserInPaperType) => {
+  data.map((d: UserInPaperType["paper"]) => {
     count++;
-    if(d.paper){
-      if(Object.keys(d.paper.paper_condition_value).length > 0){
-        csvData += `"${d.paper?.title}","${d.paper?.journal.long_name}","${d.paper?.pub_date as unknown as string}","${d.paper?.citation_count}",`;
-        d.paper?.paper_condition_value.map((condition) => {
+    if(d){
+      if(Object.keys(d.paper_condition_value).length > 0){
+        csvData += `"${d.title}","${d.journal.long_name}","${d.pub_date as unknown as string}","${d.citation_count}",`;
+        d.paper_condition_value.map((condition) => {
           csvData += `"${condition.value}",`;
         });
         
@@ -31,7 +31,7 @@ export const createCsv = (data: UserInPaperType[]) => {
         if(!hasConditions){
           csvData += '\n';
         }
-        csvData += `"${d.paper?.title}","${d.paper?.journal.long_name}","${d.paper?.pub_date as unknown as string}","${d.paper?.citation_count}"\n`;
+        csvData += `"${d.title}","${d.journal.long_name}","${d.pub_date as unknown as string}","${d.citation_count}"\n`;
       }
     }
   })

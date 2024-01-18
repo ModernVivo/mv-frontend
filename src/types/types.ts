@@ -1,32 +1,3 @@
-import { type Prisma } from "@prisma/client";
-import { type affil_type } from "@prisma/client";
-
-export type paperWithRelations = Prisma.model_used_in_paperGetPayload<{
-  include: {
-    paper: {
-      include: {
-        paper_authors: {
-          include: {
-            author: {
-              include: {
-                affiliation: true;
-              }
-            };
-          };
-        };
-        journal: true;
-        paper_condition_value: {
-          include: {
-            condition: true;
-          };
-        };
-      };
-    };
-  };
-  model: true;
-}>;
-
-
 export interface FilterType {
   value: string,
   // paper_id: number,
@@ -70,7 +41,7 @@ export interface UserInPaperType {
         affiliation: {
             affiliation_id: number;
             affiliation_name: string;
-            affiliation_type: affil_type;
+            affiliation_type: any;
         };
       }
     }];
@@ -85,7 +56,7 @@ export interface UserInPaperType {
         affiliation: {
             affiliation_id: number;
             affiliation_name: string;
-            affiliation_type: affil_type;
+            affiliation_type: any;
         };
       }
     }];
