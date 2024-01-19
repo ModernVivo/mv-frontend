@@ -10,11 +10,11 @@ import SearchResults from "~/features/results/components/search-results";
 import ResultItem from "./components/result-item";
 import Spinner from "./components/spinner";
 import { useState } from "react";
-import { type FilterType, type UserInPaperType } from "~/types/types";
+// import { type FilterType, type UserInPaperType } from "~/types/types";
 import { type ConditionType } from "~/types";
 import { createCsv } from "~/utils/csv";
 import { boxCitation, SORT_BY } from "~/utils/citationBox";
-import { useGetPapersMutation, useGetConditionsValuesMutation } from '~/store/services/core';
+import { useGetPapersMutation, useGetConditionsValuesMutation, useGetModelByIdMutation } from '~/store/services/core';
 
 const ITEMS_PER_PAGE = 10;
 const DEFAULT_SHOW_ITEM = 5;
@@ -24,7 +24,7 @@ export const Results = () => {
   const router = useRouter();
   const { id } = router.query;
   const [selectedFilters, setSelectedFilters] = useState({});
-  const [filters, setFilters] = useState([]);
+  // const [filters, setFilters] = useState([]);
   const [showAllFiltersState, setShowAllFiltersState] = useState<Record<number, boolean>>({});
   const [isAscending, setIsAscending] = useState(false);
   const [isMenuOpen, setMenuOpen] = useState(false);
@@ -33,6 +33,7 @@ export const Results = () => {
 
   const [getPapers, { data: papersData, isSuccess, isLoading, isError }] = useGetPapersMutation();
   const [getConditions, { data: conditions, isSuccess: conditionSuccess }] = useGetConditionsValuesMutation();
+  const [getGetModelById, { data: modelDetail }] = useGetModelByIdMutation();
 
   useEffect(() => {
     if (!!id) {
@@ -49,7 +50,11 @@ export const Results = () => {
   useEffect(() => {
     if (!!id) {
       getConditions({
-        model: id
+        model: id,
+        filterable: "True",
+      });
+      getGetModelById({
+        model_id: id,
       });
     }
   }, [id])
@@ -57,7 +62,7 @@ export const Results = () => {
   const getConditionParams = (conditions: any) => {
     if (isEmpty(selectedFilters)) return {};
     
-    const _conditions = {};
+    const _conditions = {} as any;
     forEach(conditions, (value, key) => {
       if(!isEmpty(value)) {
         _conditions[key] = value;
@@ -134,7 +139,7 @@ export const Results = () => {
   return (
     <>
       <section className="mt-8 flex items-center justify-center gap-4 bg-white">
-        <SearchResults name={data?.[0]?.model?.model_name ?? ""} />
+        <SearchResults name={modelDetail?.model_name ?? ""} />
         <button className="h-12  w-12 rounded-[5px] bg-accent">
           <Image
             src="/search.svg"
@@ -166,8 +171,8 @@ export const Results = () => {
                     <h3 className="text-base font-bold text-text-primary">
                       {condition.condition_display_name}
                     </h3>
-                    {condition_values.map((filter: FilterType, index: number) => {
-                      if (index > 5 && !showAllFilters) return;
+                    {condition_values.map((filter: any, index: number) => {
+                      if (index >= DEFAULT_SHOW_ITEM && !showAllFilters) return;
                       const check_id = `value-condition_${conditionId}_${index}`;
                       return (
                         <div key={check_id} className="flex items-center gap-3 cursor-pointer">
@@ -275,7 +280,7 @@ export const Results = () => {
                 </div>
               </div>
               <div className="flex flex-col gap-4">
-                {data?.map((paper: UserInPaperType): JSX.Element => (
+                {data?.map((paper: any): JSX.Element => (
                   <ResultItem key={paper.paper_id} paper={paper} paper_id={paper.paper_id} />
                 ))}
               </div>

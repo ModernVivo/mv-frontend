@@ -27,7 +27,7 @@ export const coreApi = createApi({
     getModel: builder.query<any, any>({
       query: (params: string | string[][] | null) => `model/${objectToQueryParams(params)}`,
     }),
-    getModelById: builder.query<any, any>({
+    getModelById: builder.mutation<any, any>({
       query: (query: ModelByIdQuery) => `model/${query.model_id}/${objectToQueryParams(query.params)}`,
     }),
     getPapers: builder.mutation<any, any>({
@@ -42,6 +42,6 @@ export const {
   useGetConditionsMutation,
   useGetConditionsValuesMutation,
   useGetModelQuery,
-  useGetModelByIdQuery,
+  useGetModelByIdMutation,
   useGetPapersMutation,
 } = coreApi;
