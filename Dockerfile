@@ -1,31 +1,47 @@
-# Get NPM packages
-FROM node:14-alpine AS dependencies
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --only=production
+##### DEPENDENCIES
 
-# Rebuild the source code only when needed
-FROM node:14-alpine AS builder
+FROM --platform=linux/amd64 node:16-alpine3.17 AS deps
+RUN apk add --no-cache libc6-compat openssl1.1-compat
 WORKDIR /app
+
+COPY package.json ./
+
+RUN npm -g install pnpm && pnpm i
+
+##### BUILDER
+
+FROM --platform=linux/amd64 node:16-alpine3.17 AS builder
+ARG DATABASE_URL
+ARG NEXT_PUBLIC_CLIENTVAR
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-COPY --from=dependencies /app/node_modules ./node_modules
-RUN npm run build
 
-# Production image, copy all the files and run next
-FROM node:14-alpine AS runner
+# ENV NEXT_TELEMETRY_DISABLED 1
+
+RUN npm -g install pnpm && SKIP_ENV_VALIDATION=1 pnpm run build
+
+##### RUNNER
+
+FROM --platform=linux/amd64 node:16-alpine3.17 AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
 
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
+# ENV NEXT_TELEMETRY_DISABLED 1
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/next.config.mjs ./
+COPY --from=builder /app/public ./public
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
 
 USER nextjs
 EXPOSE 3000
+ENV PORT 3000
+ENV NEXT_PUBLIC_API_ENDPOINT=https://api.modernvivo.com/api/
 
-CMD ["npm", "start"]
+CMD ["node", "server.js"]
