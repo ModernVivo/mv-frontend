@@ -35,4 +35,4 @@ With npm
 
 ## Deploy to Google Cloud Run
 
-[![Run on Google Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run??authuser=2)
+[![Run on Google Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run)
