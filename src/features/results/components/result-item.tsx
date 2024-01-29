@@ -52,14 +52,14 @@ export default function ResultItem({
               <input type="text" placeholder="Search condition" />
             </div> */}
           </div>
-          <div className="mt-2 grid grid-cols-1 lg:grid-cols-2 gap-2 mb-6">
+          <div className="mt-2 grid grid-cols-1 xl:grid-cols-2 gap-2 mb-6">
             {paper.paper_condition_value.length > 0 ? (
               paper.paper_condition_value.map((condition, index: number) => {
                 if (index > 5 && !showAllConditions) return;
                 return (
                   <span
                     key={paper_id + condition.condition.condition_id}
-                    className="font-normal w-full lg:w-[25rem]"
+                    className="font-normal w-full xl:w-[25rem]"
                   >
                     <strong className="font-bold w-[25rem]">
                       {condition.condition.condition_display_name}

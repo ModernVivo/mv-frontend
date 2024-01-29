@@ -44,3 +44,7 @@ yarn-error.log*
 #docker-compose
 docker-compose.yml
 
+# Gitignoring this so we don't have to keep editing the API_ENDPOINT constant before deploying
+src/constants/index.ts
+
+.idea
