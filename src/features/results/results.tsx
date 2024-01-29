@@ -303,7 +303,6 @@ export const Results = () => {
               onPageChange={handlePageClick}
               pageRangeDisplayed={5}
               pageCount={pageCount}
-              renderOnZeroPageCount={null}
               containerClassName="inline-flex -space-x-px text-base h-10"
               className=""
               pageClassName=""
