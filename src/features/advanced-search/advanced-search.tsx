@@ -9,15 +9,20 @@ import { useGetModelQuery } from '~/store/services/core';
 import { type ModelType } from "~/types";
 
 export default function AdvancedSearch() {
-  const [selectedModel, setSelectedModel] = useState(1);
   const router = useRouter();
   // const { data } = api.modelType.getAllModelTypes.useQuery();
 
   const modelReducer = useGetModelQuery({});
 
   const models = get(modelReducer, 'data', []) as ModelType[];
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+  const [selectedModel, setSelectedModel] = useState<number>(get(models, '[0].model_id'));
 
   const handleClick = () => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    setSelectedModel(+document.getElementById('search').value);
     if (selectedModel) {
       void router.push(`/results/${selectedModel}`);
     }
