@@ -12,7 +12,9 @@ export default function AdvancedSearch() {
   const router = useRouter();
   const [selectedModel, setSelectedModel] = useState<number | undefined>();
 
-  const { data: models, isLoading } = useGetModelQuery({}) as { data: ModelType[] | undefined, isLoading: boolean };
+  const { data: models, isLoading } = useGetModelQuery({
+    usable: "True"
+  }) as { data: ModelType[] | undefined, isLoading: boolean };
 
   useEffect(() => {
     if (!!models && models.length > 0) {
