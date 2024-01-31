@@ -1,6 +1,6 @@
+import { useEffect } from "react";
 import Image from "next/image";
 import ModernVivo from "../components/modern-vivo";
-// import { api } from "../../utils/api";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { get } from "lodash";
@@ -10,19 +10,17 @@ import { type ModelType } from "~/types";
 
 export default function AdvancedSearch() {
   const router = useRouter();
-  // const { data } = api.modelType.getAllModelTypes.useQuery();
+  const [selectedModel, setSelectedModel] = useState<number | undefined>();
 
-  const modelReducer = useGetModelQuery({});
+  const { data: models, isLoading } = useGetModelQuery({}) as { data: ModelType[] | undefined, isLoading: boolean };
 
-  const models = get(modelReducer, 'data', []) as ModelType[];
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-  const [selectedModel, setSelectedModel] = useState<number>(get(models, '[0].model_id'));
+  useEffect(() => {
+    if (!!models && models.length > 0) {
+      setSelectedModel(get(models, '[0].model_id'))
+    }
+  }, [models])
 
   const handleClick = () => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    setSelectedModel(+document.getElementById('search').value);
     if (selectedModel) {
       void router.push(`/results/${selectedModel}`);
     }
@@ -61,11 +59,12 @@ export default function AdvancedSearch() {
                 className="h-12 w-full appearance-none rounded-[5px] border border-solid border-text-primary px-5 py-3"
                 // placeholder="Formalin-Induced Nociceptive Pain Model"
                 onChange={(e) => setSelectedModel(+e.target.value)}
-                defaultValue={get(models, '[0].model_id')}
+                defaultValue={selectedModel}
+                disabled={isLoading && !models}
               >
-                {models.map((modelType) => (
-                  <option key={modelType.model_id} value={modelType.model_id}>
-                    {modelType.model_name}
+                {!!models && models.map((model: ModelType) => (
+                  <option key={model.model_id} value={model.model_id}>
+                    {model.model_name}
                   </option>
                 ))}
               </select>
