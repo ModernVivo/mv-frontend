@@ -1,6 +1,6 @@
 ##### DEPENDENCIES
 
-FROM --platform=linux/amd64 node:16-alpine3.17 AS deps
+FROM --platform=linux/amd64 node:18-alpine3.17 AS deps
 RUN apk add --no-cache libc6-compat openssl1.1-compat
 WORKDIR /app
 
@@ -10,7 +10,7 @@ RUN npm -g install pnpm && pnpm i
 
 ##### BUILDER
 
-FROM --platform=linux/amd64 node:16-alpine3.17 AS builder
+FROM --platform=linux/amd64 node:18-alpine3.17 AS builder
 ARG DATABASE_URL
 ARG NEXT_PUBLIC_CLIENTVAR
 WORKDIR /app
@@ -23,7 +23,7 @@ RUN npm -g install pnpm && SKIP_ENV_VALIDATION=1 pnpm run build
 
 ##### RUNNER
 
-FROM --platform=linux/amd64 node:16-alpine3.17 AS runner
+FROM --platform=linux/amd64 node:18-alpine3.17 AS runner
 WORKDIR /app
 
 ENV NODE_ENV production

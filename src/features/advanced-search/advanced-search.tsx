@@ -1,6 +1,6 @@
+import { useEffect } from "react";
 import Image from "next/image";
 import ModernVivo from "../components/modern-vivo";
-// import { api } from "../../utils/api";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { get } from "lodash";
@@ -9,13 +9,18 @@ import { useGetModelQuery } from '~/store/services/core';
 import { type ModelType } from "~/types";
 
 export default function AdvancedSearch() {
-  const [selectedModel, setSelectedModel] = useState(1);
   const router = useRouter();
-  // const { data } = api.modelType.getAllModelTypes.useQuery();
+  const [selectedModel, setSelectedModel] = useState<number | undefined>();
 
-  const modelReducer = useGetModelQuery({});
+  const { data: models, isLoading } = useGetModelQuery({
+    usable: "True"
+  }) as { data: ModelType[] | undefined, isLoading: boolean };
 
-  const models = get(modelReducer, 'data', []) as ModelType[];
+  useEffect(() => {
+    if (!!models && models.length > 0) {
+      setSelectedModel(get(models, '[0].model_id'))
+    }
+  }, [models])
 
   const handleClick = () => {
     if (selectedModel) {
@@ -56,11 +61,12 @@ export default function AdvancedSearch() {
                 className="h-12 w-full appearance-none rounded-[5px] border border-solid border-text-primary px-5 py-3"
                 // placeholder="Formalin-Induced Nociceptive Pain Model"
                 onChange={(e) => setSelectedModel(+e.target.value)}
-                defaultValue={get(models, '[0].model_id')}
+                defaultValue={selectedModel}
+                disabled={isLoading && !models}
               >
-                {models.map((modelType) => (
-                  <option key={modelType.model_id} value={modelType.model_id}>
-                    {modelType.model_name}
+                {!!models && models.map((model: ModelType) => (
+                  <option key={model.model_id} value={model.model_id}>
+                    {model.model_name}
                   </option>
                 ))}
               </select>

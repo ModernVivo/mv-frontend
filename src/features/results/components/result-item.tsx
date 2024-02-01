@@ -44,7 +44,7 @@ export default function ResultItem({
             </div>
           </div>
         </div>
-        <div className="basis-1/1" style={{ marginLeft: "20px" }}>
+        <div className="basis-1/1 w-full lg:w-auto" style={{ marginLeft: "20px" }}>
           <div className="flex items-center justify-between">
             <h2 className="text-[22px] font-bold">Conditions</h2>
             {/* <div className="flex items-center gap-2 rounded border border-[#E0E2E4] px-3 py-2">
@@ -52,14 +52,14 @@ export default function ResultItem({
               <input type="text" placeholder="Search condition" />
             </div> */}
           </div>
-          <div className="mt-2 grid grid-cols-2 gap-2 mb-6">
+          <div className="mt-2 grid grid-cols-1 xl:grid-cols-2 gap-2 mb-6">
             {paper.paper_condition_value.length > 0 ? (
               paper.paper_condition_value.map((condition, index: number) => {
                 if (index > 5 && !showAllConditions) return;
                 return (
                   <span
                     key={paper_id + condition.condition.condition_id}
-                    className="font-normal w-[25rem]"
+                    className="font-normal w-full xl:w-[25rem]"
                   >
                     <strong className="font-bold w-[25rem]">
                       {condition.condition.condition_display_name}
