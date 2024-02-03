@@ -1,6 +1,6 @@
 import axios from "axios";
 import { get } from "lodash";
-import { AxiosError, AxiosRequestConfig, HttpStatusCode } from "axios";
+import { type AxiosError, type AxiosRequestConfig, HttpStatusCode } from "axios";
 import type { BaseQueryFn } from "@reduxjs/toolkit/query";
 
 // import { ApiError } from "./ApiError";
@@ -40,7 +40,7 @@ export const axiosBaseQuery =
   ): BaseQueryFn<
     {
       url: string;
-      method: AxiosRequestConfig["method"];
+      method?: AxiosRequestConfig["method"];
       data?: AxiosRequestConfig["data"];
       params?: AxiosRequestConfig["params"];
       headers?: AxiosRequestConfig["headers"];
@@ -48,7 +48,7 @@ export const axiosBaseQuery =
     unknown,
     unknown
   > =>
-  async ({ url, method, data, params, headers }, api, extraOptions) => {
+  async ({ url, method = 'get', data, params, headers }, api) => {
     try {
       const result = await httpApi({
         url: baseUrl + url,

@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 
 import Image from "next/image";
 import { useRouter } from 'next/router';
-import { useForm } from 'react-hook-form';
+import { get } from 'lodash';
+import { useForm, type SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
 
 import { useAppDispatch } from '~/hooks/reduxHooks';
 import { doLogin } from '~/store/slices/authSlice';
+import type { LoginRequest } from "~/types/auth";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -24,20 +26,23 @@ export default function LoginForm() {
   const { register, handleSubmit, setError, formState } = useForm(formOptions);
   const { errors } = formState;
 
-  function onSubmit({ username, password }) {
+  const onSubmit: SubmitHandler<LoginRequest> = async (formData: LoginRequest): Promise<void> => {
+    const { username, password } = formData;
     setLoading(true);
-    setError(null);
-    dispatch(doLogin({ username, password }))
+    setError('root.apiError', { message: "" });
+    await dispatch(doLogin({ username, password }))
       .unwrap()
       .then(() => {
-        const returnUrl = router.query.returnUrl ?? '/';
+        const returnUrl = get(router, 'query.returnUrl', '/') as string;
         router.push(returnUrl);
       })
-      .catch((err) => {
-        setError('apiError', { message: "Username or password does not match!" });
+      .catch(() => {
+        setError('root.apiError', { message: "Username or password does not match!" });
         setLoading(false);
       });
   }
+
+  const apiError = get(errors, 'root.apiError.message');
 
   return (
     <>
@@ -71,11 +76,11 @@ export default function LoginForm() {
                 {/* <div className="flex items-center justify-end">
                   <a href="#" className="text-sm font-medium text-primary-600 hover:underline dark:text-primary-500">Forgot password?</a>
                 </div> */}
-                <button disabled={isLoading} type="submit" className="w-full text-white bg-blue-600 hover:bg-blue-300 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                <button disabled={isLoading} type="submit" className="w-full text-white bg-blue-600 hover:bg-blue-500 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
                   Sign in
                 </button>
-                {errors.apiError &&
-                  <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 text-center" role="alert">{errors.apiError?.message}</div>
+                {!!apiError &&
+                  <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 text-center" role="alert">{apiError}</div>
                 }
               </form>
             </div>
