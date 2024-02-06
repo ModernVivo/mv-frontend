@@ -19,6 +19,9 @@ const config = {
   },
   output: "standalone",
   swcMinify: false,
+  env: {
+    NEXT_PUBLIC_API_ENDPOINT: process.env.NEXT_PUBLIC_API_ENDPOINT ?? "http://api.modernvivo.com/api/",
+  },
 };
 
 export default config;
