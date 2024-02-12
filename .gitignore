@@ -47,3 +47,6 @@ docker-compose.yml
 .idea
 # Sentry Config File
 .sentryclirc
+
+# Sentry Config File
+.sentryclirc

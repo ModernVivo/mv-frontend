@@ -5,7 +5,7 @@
 import * as Sentry from "@sentry/nextjs";
 
 Sentry.init({
-  dsn: "https://738397419a0cb5e391613793f4b762b2@o4506696855781376.ingest.sentry.io/4506696879702016",
+  dsn: "https://4ef335ccf6e7e0f730bf708fadf31832@o4506696855781376.ingest.sentry.io/4506736316448768",
 
   // Adjust this value in production, or use tracesSampler for greater control
   tracesSampleRate: 1,
@@ -23,8 +23,8 @@ Sentry.init({
   integrations: [
     Sentry.replayIntegration({
       // Additional Replay configuration goes in here, for example:
-      // maskAllText: true,
-      // blockAllMedia: true,
+      maskAllText: true,
+      blockAllMedia: true,
     }),
   ],
 });
