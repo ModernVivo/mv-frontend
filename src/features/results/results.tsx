@@ -61,15 +61,15 @@ export const Results = () => {
 
   const getConditionParams = (conditions: any) => {
     if (isEmpty(selectedFilters)) return {};
-    
+
     const _conditions = {} as any;
     forEach(conditions, (value, key) => {
-      if(!isEmpty(value)) {
+      if (!isEmpty(value)) {
         _conditions[key] = value;
       }
     });
 
-    return {conditions: JSON.stringify(_conditions)};
+    return { conditions: JSON.stringify(_conditions) };
   }
 
   const toggleShowAllFilters = (conditionId: number) => {
@@ -103,7 +103,7 @@ export const Results = () => {
   const handleCheckboxChange = (condition_id: number, value: string, event: any) => {
     const isChecked = get(event, 'target.checked', false)
     const conditionId = String(condition_id);
-    if(isChecked) {
+    if (isChecked) {
       setSelectedFilters((preValue) => ({
         ...preValue,
         [conditionId]: [
@@ -119,11 +119,27 @@ export const Results = () => {
     }
   };
 
-  const handleDownloadCSV = () => {
-    if (isSuccess && data) {
-      createCsv(data);
+
+  /** 
+   * START HANDLE SAVE SEARCH
+  */
+  const [getPapersDownloadCSV, { data: papersDataDownloadCSV, isSuccess: isSuccessDownloadCSV }] = useGetPapersMutation();
+  useEffect(() => {
+    if (!!papersDataDownloadCSV && isSuccessDownloadCSV) {
+      createCsv(papersDataDownloadCSV);
     }
+  }, [papersDataDownloadCSV, isSuccessDownloadCSV])
+
+  const handleDownloadCSV = async () => {
+    await getPapersDownloadCSV({
+      model: id,
+      ordering: `${isAscending ? '' : '-'}${selectedOption}`,
+      ...getConditionParams(selectedFilters)
+    })
   };
+  /** 
+   * END HANDLE SAVE SEARCH
+  */
 
   const handleSortClick2 = () => {
     setMenuOpen(!isMenuOpen);
