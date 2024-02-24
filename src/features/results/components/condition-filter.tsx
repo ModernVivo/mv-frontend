@@ -41,27 +41,29 @@ const ConditionFilter = ({
               <h3 className="text-base font-bold text-text-primary">
                 {condition.condition_display_name}
               </h3>
-              {condition_values.map((filter: any, index: number) => {
-                if (index >= DEFAULT_SHOW_ITEM && !showAllFilters) return;
-                const check_id = `value-condition_${conditionId}_${index}`;
-                return (
-                  <div key={check_id} className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      id={check_id}
-                      name={`${filter.value}`}
-                      className="h-4 w-4 rounded-sm border border-black accent-[#475569] cursor-pointer"
-                      onChange={(event: any) => handleCheckboxChange(conditionId, filter.value, event)}
-                    />
-                    <label
-                      htmlFor={check_id}
-                      className="text-base text-text-primary cursor-pointer"
-                    >
-                      {`${filter.value}`}
-                    </label>
-                  </div>
-                );
-              })}
+              <div className="max-h-[20vh] overflow-y-auto py-2 my-2">
+                {condition_values.map((filter: any, index: number) => {
+                  if (index >= DEFAULT_SHOW_ITEM && !showAllFilters) return;
+                  const check_id = `value-condition_${conditionId}_${index}`;
+                  return (
+                    <div key={check_id} className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        id={check_id}
+                        name={`${filter.value}`}
+                        className="h-4 w-4 rounded-sm border border-black accent-[#475569] cursor-pointer"
+                        onChange={(event: any) => handleCheckboxChange(conditionId, filter.value, event)}
+                      />
+                      <label
+                        htmlFor={check_id}
+                        className="text-base text-text-primary cursor-pointer"
+                      >
+                        {`${filter.value}`}
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
               {condition_values.length > DEFAULT_SHOW_ITEM && (
                 <div
                   className="mb-9 flex w-4/5 cursor-pointer gap-2"
