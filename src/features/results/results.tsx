@@ -30,6 +30,7 @@ export const Results = () => {
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState(SORT_BY.CITATION_COUNT);
   const [itemOffset, setItemOffset] = useState(0);
+  const [saveSearchLoading, setSaveSearchLoading] = useState(false);
 
   const [getPapers, { data: papersData, isSuccess, isLoading, isError }] = useGetPapersMutation();
   const [getConditions, { data: conditions, isSuccess: conditionSuccess }] = useGetConditionsValuesMutation();
@@ -61,15 +62,15 @@ export const Results = () => {
 
   const getConditionParams = (conditions: any) => {
     if (isEmpty(selectedFilters)) return {};
-    
+
     const _conditions = {} as any;
     forEach(conditions, (value, key) => {
-      if(!isEmpty(value)) {
+      if (!isEmpty(value)) {
         _conditions[key] = value;
       }
     });
 
-    return {conditions: JSON.stringify(_conditions)};
+    return { conditions: JSON.stringify(_conditions) };
   }
 
   const toggleShowAllFilters = (conditionId: number) => {
@@ -103,7 +104,7 @@ export const Results = () => {
   const handleCheckboxChange = (condition_id: number, value: string, event: any) => {
     const isChecked = get(event, 'target.checked', false)
     const conditionId = String(condition_id);
-    if(isChecked) {
+    if (isChecked) {
       setSelectedFilters((preValue) => ({
         ...preValue,
         [conditionId]: [
@@ -119,11 +120,29 @@ export const Results = () => {
     }
   };
 
-  const handleDownloadCSV = () => {
-    if (isSuccess && data) {
-      createCsv(data);
+
+  /** 
+   * START HANDLE SAVE SEARCH
+  */
+  const [getPapersDownloadCSV, { data: papersDataDownloadCSV, isSuccess: isSuccessDownloadCSV }] = useGetPapersMutation();
+  useEffect(() => {
+    if (!!papersDataDownloadCSV && isSuccessDownloadCSV) {
+      createCsv(papersDataDownloadCSV);
+      setSaveSearchLoading(false);
     }
+  }, [papersDataDownloadCSV, isSuccessDownloadCSV])
+
+  const handleDownloadCSV = async () => {
+    setSaveSearchLoading(true);
+    await getPapersDownloadCSV({
+      model: id,
+      ordering: `${isAscending ? '' : '-'}${selectedOption}`,
+      ...getConditionParams(selectedFilters)
+    })
   };
+  /** 
+   * END HANDLE SAVE SEARCH
+  */
 
   const handleSortClick2 = () => {
     setMenuOpen(!isMenuOpen);
@@ -149,10 +168,11 @@ export const Results = () => {
             className="m-auto"
           />
         </button>
-        <div className="flex items-center gap-3 px-4 py-2">
+        <button className="flex items-center gap-3 px-4 py-2 disabled:text-[#999]" disabled={saveSearchLoading}>
           <Image src="/save-search.png" alt="sort-by" width={16} height={16} />
           <span className="text-text-base cursor-pointer leading-[120%] underline" onClick={handleDownloadCSV}>Save Search</span>
-        </div>
+          {saveSearchLoading && <Spinner height="auto"/>}
+        </button>
       </section>
       <section className="mt-8 flex ">
         {/* Sidebar */}
