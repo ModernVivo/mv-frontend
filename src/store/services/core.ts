@@ -41,6 +41,11 @@ export const coreApi = createApi({
           url: `papers/${objectToQueryParams(params)}`,
         }),
       }),
+      getSpecificAffiliationOfPapers: builder.mutation<any, any>({
+        query: (params: string | string[][] | null) => ({
+          url: `specific-affiliation-of-papers/${objectToQueryParams(params)}`,
+        }),
+      }),
     };
   },
 });
@@ -53,4 +58,5 @@ export const {
   useGetModelQuery,
   useGetModelByIdMutation,
   useGetPapersMutation,
+  useGetSpecificAffiliationOfPapersMutation,
 } = coreApi;

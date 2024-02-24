@@ -11,14 +11,15 @@ import ResultItem from "./components/result-item";
 import Spinner from "./components/spinner";
 import { useState } from "react";
 // import { type FilterType, type UserInPaperType } from "~/types/types";
-import { type ConditionType } from "~/types";
+// import { type ConditionType } from "~/types";
 import { createCsv } from "~/utils/csv";
 import { boxCitation, SORT_BY } from "~/utils/citationBox";
-import { useGetPapersMutation, useGetConditionsValuesMutation, useGetModelByIdMutation } from '~/store/services/core';
+import { useGetPapersMutation, useGetConditionsValuesMutation, useGetModelByIdMutation, useGetSpecificAffiliationOfPapersMutation } from '~/store/services/core';
+import ConditionFilter from './components/condition-filter';
+import AffiliationFilter from './components/affiliation-filter';
 
 const ITEMS_PER_PAGE = 10;
 const DEFAULT_SHOW_ITEM = 5;
-
 
 export const Results = () => {
   const router = useRouter();
@@ -34,6 +35,7 @@ export const Results = () => {
   const [getPapers, { data: papersData, isSuccess, isLoading, isError }] = useGetPapersMutation();
   const [getConditions, { data: conditions, isSuccess: conditionSuccess }] = useGetConditionsValuesMutation();
   const [getGetModelById, { data: modelDetail }] = useGetModelByIdMutation();
+  const [getSpecificAffiliationOfPapers, { data: specificAffiliations, isSuccess: specificAffiliationSuccess, isLoading: specificAffiliationLoading }] = useGetSpecificAffiliationOfPapersMutation();
 
   useEffect(() => {
     if (!!id) {
@@ -44,6 +46,13 @@ export const Results = () => {
         ordering: `${isAscending ? '' : '-'}${selectedOption}`,
         ...getConditionParams(selectedFilters)
       });
+
+
+      // get specific affiliations list
+      getSpecificAffiliationOfPapers({
+        model: id,
+        ...getConditionParams(selectedFilters)
+      })
     }
   }, [selectedFilters, itemOffset, id, isAscending, selectedOption])
 
@@ -59,17 +68,19 @@ export const Results = () => {
     }
   }, [id])
 
-  const getConditionParams = (conditions: any) => {
-    if (isEmpty(selectedFilters)) return {};
-    
-    const _conditions = {} as any;
-    forEach(conditions, (value, key) => {
-      if(!isEmpty(value)) {
-        _conditions[key] = value;
+  const getConditionParams = (filters: any) => {
+    if (isEmpty(filters)) return {};
+
+    const _filters = {} as any;
+    forEach(filters, (value, key) => {
+      if (!isEmpty(value)) {
+        _filters[key] = value;
       }
     });
 
-    return {conditions: JSON.stringify(_conditions)};
+    console.log('_filters', _filters)
+
+    return { conditions: JSON.stringify(_filters) };
   }
 
   const toggleShowAllFilters = (conditionId: number) => {
@@ -103,7 +114,7 @@ export const Results = () => {
   const handleCheckboxChange = (condition_id: number, value: string, event: any) => {
     const isChecked = get(event, 'target.checked', false)
     const conditionId = String(condition_id);
-    if(isChecked) {
+    if (isChecked) {
       setSelectedFilters((preValue) => ({
         ...preValue,
         [conditionId]: [
@@ -156,67 +167,27 @@ export const Results = () => {
       </section>
       <section className="mt-8 flex ">
         {/* Sidebar */}
-        {conditionSuccess && conditions?.length !== 0 && (
-          <aside className="mx-8 h-max w-[20%] rounded-[10px] border border-[#E0E2E4]">
-            <div className="flex flex-col gap-4">
-              <h2 className="border-b border-[#E0E2E4] px-6 py-3 text-base font-bold leading-[250%] text-[#FFFFFF] bg-[#051731]">
-                Filter by:
-              </h2>
-              {conditions?.map((condition: ConditionType) => {
-                const conditionId = condition.condition_id;
-                const showAllFilters = showAllFiltersState[conditionId];
-                const condition_values = get(condition, 'values', []);
-                return (
-                  <div key={`condition-${conditionId}`} className="flex flex-col gap-2 border-b border-[#E0E2E4] px-6 py-3">
-                    <h3 className="text-base font-bold text-text-primary">
-                      {condition.condition_display_name}
-                    </h3>
-                    {condition_values.map((filter: any, index: number) => {
-                      if (index >= DEFAULT_SHOW_ITEM && !showAllFilters) return;
-                      const check_id = `value-condition_${conditionId}_${index}`;
-                      return (
-                        <div key={check_id} className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            id={check_id}
-                            name={`${filter.value}`}
-                            className="h-4 w-4 rounded-sm border border-black accent-[#475569] cursor-pointer"
-                            onChange={(event: any) => handleCheckboxChange(conditionId, filter.value, event)}
-                          />
-                          <label
-                            htmlFor={check_id}
-                            className="text-base text-text-primary cursor-pointer"
-                          >
-                            {`${filter.value}`}
-                          </label>
-                        </div>
-                      );
-                    })}
-                    {condition_values.length > DEFAULT_SHOW_ITEM && (
-                      <div
-                        className="mb-9 flex w-4/5 cursor-pointer gap-2"
-                        onClick={() => toggleShowAllFilters(conditionId)}
-                      >
-                        <span className="text-base text-accent">
-                          {showAllFilters
-                            ? "Hide"
-                            : `Show all ${condition_values.length - DEFAULT_SHOW_ITEM}`}
-                        </span>
-                        <Image
-                          src="/chevron-accent.svg"
-                          alt="chevron-down"
-                          width={16}
-                          height={16}
-                          className={`${showAllFilters ? "rotate-180" : ""} `}
-                        />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </aside>
-        )}
+        <aside className="mx-8 h-max w-[20%] mb-5">
+          <AffiliationFilter
+            data={specificAffiliations}
+            isSuccess={specificAffiliationSuccess}
+            isLoading={specificAffiliationLoading}
+            selectedFilters={selectedFilters}
+            showAllFiltersState={showAllFiltersState}
+            DEFAULT_SHOW_ITEM={DEFAULT_SHOW_ITEM}
+            handleCheckboxChange={handleCheckboxChange}
+            toggleShowAllFilters={toggleShowAllFilters}
+          />
+          <ConditionFilter
+            conditionSuccess={conditionSuccess}
+            conditions={conditions}
+            showAllFiltersState={showAllFiltersState}
+            DEFAULT_SHOW_ITEM={DEFAULT_SHOW_ITEM}
+            handleCheckboxChange={handleCheckboxChange}
+            toggleShowAllFilters={toggleShowAllFilters}
+          />
+        </aside>
+
         <main className="mr-8 w-[80%]">
           {isLoading ? (
             <Spinner />
