@@ -56,22 +56,24 @@ const AffiliationFilter = ({
     const showAllFilters = showAllFiltersState[specific_affiliation];
     return (
       <div>
-        <div className="max-h-[20vh] overflow-y-auto py-2 my-2">
+        <div className="max-h-[500px] overflow-y-auto py-2 my-2">
           {data.map((filter: any, index: number) => {
             if (index >= DEFAULT_SHOW_ITEM && !showAllFilters) return;
             const affiliation_id = filter.affiliation_name;
             const check_id = `value-specific_affiliation_${affiliation_id}`;
             const checked = get(selectedFilters, specific_affiliation, []).includes(affiliation_id);
             return (
-              <div key={check_id} className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  id={check_id}
-                  name={affiliation_id}
-                  className="h-4 w-4 rounded-sm border border-black accent-[#475569] cursor-pointer"
-                  onChange={(event: any) => handleCheckboxChange(specific_affiliation, affiliation_id, event)}
-                  checked={checked}
-                />
+              <div key={check_id} className="flex justify-start items-start gap-3 cursor-pointer py-2">
+                <div className="w-[20px] flex justify-start items-center pt-1">
+                  <input
+                    type="checkbox"
+                    id={check_id}
+                    name={affiliation_id}
+                    className="h-4 w-4 rounded-sm border border-black accent-[#475569] cursor-pointer"
+                    onChange={(event: any) => handleCheckboxChange(specific_affiliation, affiliation_id, event)}
+                    checked={checked}
+                  />
+                </div>
                 <label
                   htmlFor={check_id}
                   className="text-base text-text-primary cursor-pointer"
