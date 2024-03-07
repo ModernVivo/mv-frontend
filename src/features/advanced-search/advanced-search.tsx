@@ -7,8 +7,23 @@ import { get } from "lodash";
 
 import { useGetModelQuery } from '~/store/services/core';
 import { type ModelType } from "~/types";
+import * as Sentry from "@sentry/nextjs";
 
 export default function AdvancedSearch() {
+  Sentry.init({
+    dsn: "https://738397419a0cb5e391613793f4b762b2@o4506696855781376.ingest.us.sentry.io/4506696879702016",
+
+    integrations: [
+      Sentry.feedbackIntegration({
+        // Additional SDK configuration goes in here, for example:
+        colorScheme: "system",
+        buttonLabel: "Send Feedback",
+        submitButtonLabel: "Send Feedback",
+        formTitle: "Send Feedback",
+      }),
+    ],
+  });
+
   const router = useRouter();
   const [selectedModel, setSelectedModel] = useState<number | undefined>();
 
