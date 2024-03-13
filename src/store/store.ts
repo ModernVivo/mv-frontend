@@ -1,8 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { coreApi } from "./services/core";
+import rootReducer from './slices';
 
 const store = configureStore({
   reducer: {
+    ...rootReducer,
     // Add the generated reducer as a specific top-level slice
     [coreApi.reducerPath]: coreApi.reducer,
   },

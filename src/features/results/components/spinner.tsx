@@ -1,6 +1,6 @@
-export default function Spinner() {
+export default function Spinner({ height = '100vh' }) {
   return (
-    <div role="status" className="flex h-screen items-center justify-center">
+    <div role="status" className="flex h-screen items-center justify-center" style={{height}}>
       <svg
         aria-hidden="true"
         className="mr-2 h-8 w-8 animate-spin fill-blue-600 text-gray-200 dark:text-gray-600"

@@ -1,62 +1,71 @@
-name: Release
-# on push new tag to main
+name: Test and Deploy
+
 on:
   push:
-    tags:
-      - '*'
+    branches:
+      - dev
+      - prod
 
 jobs:
-  docker-release:
-    name: Tagged Docker release to Google Artifact Registry
+  test-build:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build Docker image
+        run: |
+          docker build -t test-image .
 
+  deploy_dev:
+    if: github.ref == 'refs/heads/dev'
+    needs: test-build
+    runs-on: ubuntu-latest
     permissions:
       contents: 'read'
       id-token: 'write'
 
     steps:
-      - id: checkout
-        name: Checkout
+      - id: checkout_dev
+        name: Checkout code
+        uses: actions/checkout@v4
+
+      - id: auth_dev
+        name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: 'mv-dev-388916'
+          credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
+
+      - id: deploy_dev
+        name: Deploy to beta service
+        uses: 'google-github-actions/deploy-cloudrun@v2'
+        with:
+          service: 'mv-frontend-beta'
+          region: 'us-central1'
+          source: '.'
+
+  deploy_prod:
+    if: github.ref == 'refs/heads/prod'
+    needs: test-build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - id: checkout_prod
+        name: Checkout code
         uses: actions/checkout@v2
 
-      - id: auth
+      - id: auth_prod
         name: Authenticate with Google Cloud
-        uses: google-github-actions/auth@v0
+        uses: google-github-actions/auth@v2
         with:
-          token_format: access_token
-          workload_identity_provider: ${{ secrets.PROVIDER_ID }}
-          service_account: ${{ secrets.SERVICE_ACCOUNT }}@${{ secrets.PROJECT_ID }}.iam.gserviceaccount.com
-          access_token_lifetime: 300s
+          credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
 
-      - name: Login to Artifact Registry
-        uses: docker/login-action@v1
+      - id: deploy_prod
+        name: Deploy to production service
+        uses: 'google-github-actions/deploy-cloudrun@v2'
         with:
-          registry: ${{ secrets.GAR_REGION }}-docker.pkg.dev
-          username: oauth2accesstoken
-          password: ${{ steps.auth.outputs.access_token }}
-
-      - name: Get tag
-        id: get-tag
-        run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
-
-      - id: docker-push-tagged
-        name: Tag Docker image and push to Google Artifact Registry
-        uses: docker/build-push-action@v2
-        with:
-          push: true
-          build-args: |
-            GH_MV_MACHINE_PAT=${{ secrets.GH_MV_MACHINE_PAT }}
-          tags: |
-            ${{ secrets.GAR_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.GAR_REPO_NAME }}/${{ secrets.DOCKER_IMAGE_NAME }}:${{ steps.get-tag.outputs.short_ref }}
-            ${{ secrets.GAR_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.GAR_REPO_NAME }}/${{ secrets.DOCKER_IMAGE_NAME }}:latest
-
-      - id: 'deploy'
-        name: 'Deploy to Cloud Run'
-        uses: 'google-github-actions/deploy-cloudrun@v1'
-        with:
-          service: '${{ secrets.CLOUD_RUN_SERVICE }}'
-          region: '${{ secrets.GAR_REGION }}'
-          image: '${{ secrets.GAR_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.GAR_REPO_NAME }}/${{ secrets.DOCKER_IMAGE_NAME }}:${{ steps.get-tag.outputs.short_ref }}'
-      
-      - name: 'Use output'
-        run: 'curl "${{ steps.deploy.outputs.url }}"'
+          service: 'mv-frontend'
+          region: 'us-central1'
+          source: "."

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { useState } from "react";
-import moment from "moment";
+import { get } from "lodash";
 
 import { type UserInPaperType } from "~/types/types";
 
@@ -25,9 +25,33 @@ export default function ResultItem({
 
   const [showAllConditions, setShowAllConditions] = useState(false);
   const [showAllInformation, setShowAllInformation] = useState(false);
+
   // const year = moment(paper.pub_date).get('year');
   // const month = moment(paper.pub_date).get('month');
   // const day = moment(paper.pub_date).get('date');
+
+  // const paper_condition_value = get(paper, 'paper_condition_value', []);
+  const paper_condition_value = Object.values(
+    get(paper, 'paper_condition_value', []).reduce((c: any, e: any) => {
+      const condition_id = get(e, 'condition.condition_id')
+
+      let value = [];
+      const new_value = e.value;
+      if(!!c[condition_id]) {
+        const _value_arr = get(c[condition_id], 'value', []);
+        value = _value_arr.includes(new_value) ? c[condition_id].value : [...c[condition_id].value, new_value]
+      } else {
+        value = [new_value]
+      }
+
+      c[condition_id] = {
+        ...e,
+        value
+      }
+      return c;
+    }, {})
+  ).sort((a:any, b:any) => get(a, 'condition.condition_display_name').localeCompare(get(b, 'condition.condition_display_name')));
+
 
   return (
     <div className="border-[#E0E2E4] text-[#475569]">
@@ -53,8 +77,8 @@ export default function ResultItem({
             </div> */}
           </div>
           <div className="mt-2 grid grid-cols-1 xl:grid-cols-2 gap-2 mb-6">
-            {paper.paper_condition_value.length > 0 ? (
-              paper.paper_condition_value.map((condition, index: number) => {
+            {paper_condition_value.length > 0 ? (
+              paper_condition_value.map((condition: any, index: number) => {
                 if (index > 5 && !showAllConditions) return;
                 return (
                   <span
@@ -64,7 +88,7 @@ export default function ResultItem({
                     <strong className="font-bold w-[25rem]">
                       {condition.condition.condition_display_name}
                     </strong>{" "}
-                    {condition.value}
+                    {condition.value.join(', ')}
                   </span>
                 );
               })
@@ -73,7 +97,7 @@ export default function ResultItem({
             )}
           </div>
 
-          {paper.paper_condition_value.length > 0 && (
+          {paper_condition_value.length > 0 && (
             <div
               className="mb-9 flex w-4/5 cursor-pointer gap-2"
               onClick={() => setShowAllConditions(!showAllConditions)}
@@ -81,7 +105,7 @@ export default function ResultItem({
               <span className="text-base text-accent">
                 {showAllConditions
                   ? "Hide"
-                  : `Show all ${paper.paper_condition_value.length}`}
+                  : `Show all ${paper_condition_value.length}`}
               </span>
               <Image
                 src="/chevron-accent.svg"
