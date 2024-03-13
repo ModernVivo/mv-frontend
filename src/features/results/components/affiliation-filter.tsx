@@ -78,7 +78,7 @@ const AffiliationFilter = ({
                   htmlFor={check_id}
                   className="text-base text-text-primary cursor-pointer"
                 >
-                  {affiliation_id} - {filter.affiliation_name}
+                  {filter.affiliation_name}
                 </label>
               </div>
             );
