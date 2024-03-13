@@ -34,9 +34,18 @@ export default function ResultItem({
   const paper_condition_value = Object.values(
     get(paper, 'paper_condition_value', []).reduce((c: any, e: any) => {
       const condition_id = get(e, 'condition.condition_id')
+      let value = [];
+      const new_value = e.value;
+      if(!!c[condition_id]) {
+        const _value_arr = get(c[condition_id], 'value', []);
+        value = _value_arr.includes(new_value) ? c[condition_id].value : [...c[condition_id].value, new_value]
+      } else {
+        value = [new_value]
+      }
+
       c[condition_id] = {
         ...e,
-        value: !!c[condition_id] ? [...c[condition_id].value, e.value] : [e.value]
+        value
       }
       return c;
     }, {})
