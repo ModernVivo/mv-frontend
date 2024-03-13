@@ -28,8 +28,7 @@ export default function AdvancedSearch() {
   const [selectedModel, setSelectedModel] = useState<number | undefined>();
 
   const { data: models, isLoading } = useGetModelQuery({
-    // TODO: Reenable this in production
-    // usable: "True"
+    usable: "True"
   }) as { data: ModelType[] | undefined, isLoading: boolean };
 
   useEffect(() => {
